@@ -1,0 +1,4 @@
+[package]
+name = "timecutrust"
+version = "0.1.0"
+authors = ["Vladimir Shakhov <vshakhov@yandex-team.ru>"]
