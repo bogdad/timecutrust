@@ -23,8 +23,8 @@ fn get_first_line_after(f: &File, from: SeekFrom) {
 
 const SIZE: u32 = 512;
 
-fn find_new_line_pos(f: &File, from:SeekFrom) {
-    let mut reader = BufReader::new(f);
+fn find_new_line_pos<'a>(file: &File, from: SeekFrom) -> usize {
+    let mut reader = BufReader::new(file); 
     let before = match from {
         SeekFrom::Start(pos) => SeekFrom::Start(pos.checked_sub(SIZE as u64).unwrap()),
         SeekFrom::End(pos) => SeekFrom::End(pos.checked_add(SIZE as i64).unwrap()),
@@ -33,8 +33,12 @@ fn find_new_line_pos(f: &File, from:SeekFrom) {
     reader.seek(before);
     let mut buf: [u8;SIZE as usize] = [0; SIZE as usize];
     let nread = reader.read(&mut buf);
-    let mut it = buf.enumerate();
-    let last_line = it.rposition(|&x,&i| *x == 0); 
+    let mut it = buf.iter().enumerate();
+    let last_line = it.rposition(|(i, x)| *x == 0);
+    match last_line {
+        None => find_new_line_pos(file, before),
+        Some(pos) => pos
+    }
 }
 
 fn readlines() {
