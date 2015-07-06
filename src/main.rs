@@ -22,20 +22,24 @@ fn get_first_line_after(f: &File, from: SeekFrom) {
 }
 
 const SIZE: u32 = 512;
-fn find_new_line_pos<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: SeekFrom) -> usize { 
-    let before = match from {
-        SeekFrom::Start(pos) => SeekFrom::Start(pos.checked_sub(SIZE as u64).unwrap()),
-        SeekFrom::End(pos) => SeekFrom::End(pos.checked_add(SIZE as i64).unwrap()),
-        SeekFrom::Current(pos) => SeekFrom::Current(pos.checked_sub(SIZE as i64).unwrap())
+fn find_new_line_pos<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: u64) -> Option<usize> { 
+    let before = match from.checked_sub(SIZE as u64) {
+        None => 0,
+        Some(x) => x
     };
-    reader.seek(before).unwrap();
+    reader.seek(SeekFrom::Start(before)).unwrap();
     let mut buf: [u8;SIZE as usize] = [0; SIZE as usize];
-    reader.read(&mut buf).unwrap();
-    let mut it = buf.iter().enumerate();
-    let last_line = it.rposition(|(i, x)| *x == 0);
+    let len = reader.read(&mut buf).unwrap();
+    let last_line = buf[0..len].iter().rposition(|x|*x==0);
     match last_line {
-        None => find_new_line_pos(reader, before),
-        Some(pos) => pos + 1
+        None => { 
+                    let new_before = before.checked_sub(SIZE as u64);
+                    match new_before {
+                        Some(x) => find_new_line_pos(reader, x),
+                        None => None
+                    }
+                },
+        Some(pos) => Some(pos + 1)
     }
 }
 
@@ -43,8 +47,14 @@ fn find_new_line_pos<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: SeekFr
 fn find_new_line_pos_works() {
     let data = vec![1,2,0,1,0,5];
     let mut test_data = BufReader::new(Cursor::new(data));
-    let pos = find_new_line_pos(&mut test_data, SeekFrom::End(0));
-    assert_eq!(5,pos);
+    {
+        let pos = find_new_line_pos(&mut test_data, 5);
+        assert_eq!(Some(5),pos);
+    }
+    {
+        let pos = find_new_line_pos(&mut test_data, 4);
+        assert_eq!(Some(5), pos);
+    }
 }
 
 fn readlines() {
