@@ -1,10 +1,12 @@
 extern crate regex;
 
+use std::borrow::Cow;
 use std::cmp::max;
 use std::io;
 use std::io::{SeekFrom, BufReader, Cursor};
 use std::fs::File;
 use std::io::prelude::*;
+
 use regex::Regex;
 
 
@@ -21,39 +23,40 @@ fn get_first_line_after(f: &File, from: u64) -> String {
     String::new()
 }
 
-const SIZE: usize = 512;
+const SIZE: usize = 256;
 fn find_new_line_pos<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: usize) -> Option<String> { 
     let before = match from.checked_sub(SIZE) {
         None => 0,
         Some(x) => x
     };
     reader.seek(SeekFrom::Start(before as u64)).unwrap();
-    let mut buf: [u8;SIZE] = [0; SIZE];
+    let mut buf: [u8;2*SIZE] = [0; 2*SIZE];
     let len = reader.read(&mut buf).unwrap();
-    let last_line = buf[0..len].iter().rposition(|x|*x==b'\n');
-    match last_line {
-        None => { 
-                    let new_before = before.checked_sub(SIZE);
-                    match new_before {
-                        Some(x) => find_new_line_pos(reader, x),
-                        None => None
-                    }
-                },
-        Some(pos) => Some(String::from_utf8_lossy(&buf[pos..from]))
-    }
+    let last_before = buf[0..len].iter().enumerate().rposition(|(i, x)| *x==b'\n' && (i + before) < from);
+    let last_after = buf[0..len].iter().enumerate().position(|(i, x)| *x==b'\n' && (i + before) > from);
+    let str_before = match last_before {
+        None => "".to_string(),
+        Some(pos) => String::from_utf8_lossy(&buf[pos..from-before]).to_owned()
+    };
+    let str_after = match last_after {
+        None => "".to_string(),
+        Some(pos) => String::from_utf8_lossy(&buf[from-before..pos]).to_owned()
+    };
+    Some(str_before + str_after)
 }
 
 #[test]
 fn find_new_line_pos_works() {
-    let mut data =String::from_str("some\nother\nline").as_bytes();
-    let mut test_data = BufReader::new(Cursor::new(data));
+    let data = String::from("some\nother\nline");
+    let bytes = data.as_bytes();
+    let mut test_data = BufReader::new(Cursor::new(bytes));
     {
         let pos = find_new_line_pos(&mut test_data, 5);
-        assert_eq!(Some("line".as_bytes()),pos);
+        assert_eq!(Some("line".to_string()),pos);
     }
     {
         let pos = find_new_line_pos(&mut test_data, 4);
-        assert_eq!(Some("linr".as_bytes()), pos);
+        assert_eq!(Some("linr".to_string()), pos);
     }
 }
 
