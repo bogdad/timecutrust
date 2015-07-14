@@ -1,6 +1,5 @@
 extern crate regex;
 
-use std::borrow::Cow;
 use std::cmp::max;
 use std::io;
 use std::io::{SeekFrom, BufReader, Cursor};
@@ -18,9 +17,27 @@ fn matches(re: &Regex, line: &str) -> bool {
     re.is_match(line)
 }
 
-fn get_first_line_after(f: &File, from: u64) -> String {
-    let cur = from;
-    String::new()
+fn binary_search(reader: &BufReader<R>, item: usize, predicate: Fn(usize) -> usize) 
+    -> Option<usize> {
+     
+}
+
+fn binary_search_inner(reader: &BufReader<R>, 
+    predicate: Fn(usize) -> usize, item: usize, i_beg: usize, i_end: usize) -> Option<usize> {
+    let beg = predicate(i_beg);
+    if (item == beg) {
+        return i_beg;
+    }
+    let end = predicate(i_end);
+    if (item == end) {
+        return end;
+    }
+    let mid = i_beg + (i_end-i_beg)/2;
+    let middle =
+}
+
+fn get_first_line_after(reader: &BufReader<R>, from: u64) -> String {
+    find_new_line_pos(reader, from).unwrap();
 }
 
 const SIZE: usize = 256;
