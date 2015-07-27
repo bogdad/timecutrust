@@ -17,7 +17,7 @@ fn matches(re: &Regex, line: &str) -> bool {
     re.is_match(line)
 }
 
-type Predicate<'a> = &'a(Fn(usize) -> usize);
+type Predicate<'a> = &'a(Fn(usize) -> i64);
 
 fn binary_search(len: usize, predicate: Predicate) -> Option<usize> {
 
@@ -26,9 +26,13 @@ fn binary_search(len: usize, predicate: Predicate) -> Option<usize> {
      binary_search_inner(predicate, beg, end)
 }
 
+//fn predfactory<'a> (item:i64) -> Predicate<'a> {
+//    |i:i64| { let z:i64 = item.checked_add(i as i64).unwrap();
+//}
+
 #[test]
 fn test_binary_search() {
-    let pred = &(|i:usize| {i-5});
+    let pred: Predicate = & |i| { let g:i64 = -5; let z:i64 = g.checked_add(i as i64).unwrap(); z };
     let res = binary_search(10, pred);
     assert_eq!(res, Some(5))
 }
@@ -38,22 +42,27 @@ fn binary_search_inner(
     let mut i_beg = pi_beg;
     let mut i_end = pi_end;
     let beg = predicate(i_beg);
-    if (beg == 0) {
-        return Some(i_beg);
-    }
-    let end = predicate(i_end);
-    if (end == 0) {
-        return Some(i_end);
-    }
-    while (i_end - i_beg <= 1) {
+    while (i_end - i_beg >= 1) {
+        let beg = predicate(i_beg);
+        if (beg == 0) { 
+            return Some(i_beg);
+        }
+        let end = predicate(i_end);
+        if (end == 0) {
+            return Some(i_end);
+        }
         let mid = i_beg + (i_end-i_beg)/2;
         let pval = predicate(mid);
+        print!("{:?} {:?} {:?} {:?} \n", i_beg, i_end, mid, pval);
         if (pval == 0) {
             return Some(mid);
-        } else if (pval>0) {
+        } else if (pval < 0) {
             i_beg = mid;
         } else {
             i_end = mid;
+        }
+        if (i_end == i_beg || i_end == i_beg + 1) {
+            break; 
         }
     }
     let x: Option<usize> = None;
