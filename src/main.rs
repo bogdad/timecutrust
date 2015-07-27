@@ -1,6 +1,5 @@
 extern crate regex;
 
-use std::option;
 use std::cmp::max;
 use std::io;
 use std::io::{SeekFrom, BufReader, Cursor};
@@ -18,34 +17,40 @@ fn matches(re: &Regex, line: &str) -> bool {
     re.is_match(line)
 }
 
-type Predicate = fn(usize) -> usize;
+type Predicate<'a> = &'a(Fn(usize) -> usize);
 
-fn binary_search(item: usize, predicate: Predicate) -> Option<usize> {
+fn binary_search(len: usize, predicate: Predicate) -> Option<usize> {
 
      let mut beg = 0;
-     let mut end = 0;
-     binary_search_inner(item, predicate, beg, end)
+     let mut end = len;
+     binary_search_inner(predicate, beg, end)
 }
 
-fn binary_search_inner(item: usize,
+#[test]
+fn test_binary_search() {
+    let pred = &(|i:usize| {i-5});
+    let res = binary_search(10, pred);
+    assert_eq!(res, Some(5))
+}
+
+fn binary_search_inner(
         predicate: Predicate, pi_beg: usize, pi_end: usize) -> Option<usize> {
     let mut i_beg = pi_beg;
     let mut i_end = pi_end;
     let beg = predicate(i_beg);
-    if (item == beg) {
-        return Some(beg);
+    if (beg == 0) {
+        return Some(i_beg);
     }
     let end = predicate(i_end);
-    if (item == end) {
-        return Some(end);
+    if (end == 0) {
+        return Some(i_end);
     }
     while (i_end - i_beg <= 1) {
         let mid = i_beg + (i_end-i_beg)/2;
-        let middle = predicate(mid);
-        if (middle == item) {
+        let pval = predicate(mid);
+        if (pval == 0) {
             return Some(mid);
-        }
-        if (mid < item) {
+        } else if (pval>0) {
             i_beg = mid;
         } else {
             i_end = mid;
