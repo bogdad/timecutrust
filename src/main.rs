@@ -1,5 +1,6 @@
 extern crate regex;
 
+use std::option;
 use std::cmp::max;
 use std::io;
 use std::io::{SeekFrom, BufReader, Cursor};
@@ -17,27 +18,45 @@ fn matches(re: &Regex, line: &str) -> bool {
     re.is_match(line)
 }
 
-fn binary_search(reader: &BufReader<R>, item: usize, predicate: Fn(usize) -> usize) 
-    -> Option<usize> {
-     
+type Predicate = fn(usize) -> usize;
+
+fn binary_search(item: usize, predicate: Predicate) -> Option<usize> {
+
+     let mut beg = 0;
+     let mut end = 0;
+     binary_search_inner(item, predicate, beg, end)
 }
 
-fn binary_search_inner(reader: &BufReader<R>, 
-    predicate: Fn(usize) -> usize, item: usize, i_beg: usize, i_end: usize) -> Option<usize> {
+fn binary_search_inner(item: usize,
+        predicate: Predicate, pi_beg: usize, pi_end: usize) -> Option<usize> {
+    let mut i_beg = pi_beg;
+    let mut i_end = pi_end;
     let beg = predicate(i_beg);
     if (item == beg) {
-        return i_beg;
+        return Some(beg);
     }
     let end = predicate(i_end);
     if (item == end) {
-        return end;
+        return Some(end);
     }
-    let mid = i_beg + (i_end-i_beg)/2;
-    let middle =
+    while (i_end - i_beg <= 1) {
+        let mid = i_beg + (i_end-i_beg)/2;
+        let middle = predicate(mid);
+        if (middle == item) {
+            return Some(mid);
+        }
+        if (mid < item) {
+            i_beg = mid;
+        } else {
+            i_end = mid;
+        }
+    }
+    let x: Option<usize> = None;
+    x
 }
 
-fn get_first_line_after(reader: &BufReader<R>, from: u64) -> String {
-    find_new_line_pos(reader, from).unwrap();
+fn get_first_line_after<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: usize) -> String {
+    find_new_line_pos(reader, from).unwrap()
 }
 
 const SIZE: usize = 256;
