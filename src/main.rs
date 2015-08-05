@@ -17,7 +17,8 @@ fn matches(re: &Regex, line: &str) -> bool {
     re.is_match(line)
 }
 
-type Predicate<'a> = &'a(Fn(usize) -> i64);
+type Pred = (Box<Fn(usize) -> i64>);
+type Predicate = Pred;
 
 fn binary_search(len: usize, predicate: Predicate) -> Option<usize> {
 
@@ -26,15 +27,19 @@ fn binary_search(len: usize, predicate: Predicate) -> Option<usize> {
      binary_search_inner(predicate, beg, end)
 }
 
-//fn predfactory<'a> (item:i64) -> Predicate<'a> {
-//    |i:i64| { let z:i64 = item.checked_add(i as i64).unwrap();
-//}
+fn predfactory (item:i64) -> Predicate {
+    let pred: Pred =
+        Box::new(move |i:usize| { let z:i64 = item.checked_add(i as i64).unwrap(); z});
+    pred
+}
+
 
 #[test]
 fn test_binary_search() {
     let pred: Predicate = & |i| { let g:i64 = -5; let z:i64 = g.checked_add(i as i64).unwrap(); z };
     let res = binary_search(10, pred);
-    assert_eq!(res, Some(5))
+    assert_eq!(res, Some(5));
+    assert_eq!(binary_search(10, predfactory(2)), Some(2));
 }
 
 fn binary_search_inner(
