@@ -36,7 +36,7 @@ fn predfactory (item:i64) -> Predicate {
 
 #[test]
 fn test_binary_search() {
-    let pred: Predicate = & |i| { let g:i64 = -5; let z:i64 = g.checked_add(i as i64).unwrap(); z };
+    let pred: Predicate = Box::new(|i| { let g:i64 = -5; let z:i64 = g.checked_add(i as i64).unwrap(); z });
     let res = binary_search(10, pred);
     assert_eq!(res, Some(5));
     assert_eq!(binary_search(10, predfactory(2)), Some(2));
