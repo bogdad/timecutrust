@@ -20,11 +20,8 @@ fn matches(re: &Regex, line: &str) -> bool {
 type Pred = (Box<Fn(usize) -> i64>);
 type Predicate = Pred;
 
-fn binary_search(len: usize, predicate: Predicate) -> Option<usize> {
-
-     let mut beg = 0;
-     let mut end = len;
-     binary_search_inner(predicate, beg, end)
+fn binary_search(len: usize, predicate: Predicate) -> usize {
+     binary_search_inner(predicate, 0, len)
 }
 
 fn predfactory (item:i64) -> Predicate {
@@ -38,40 +35,35 @@ fn predfactory (item:i64) -> Predicate {
 fn test_binary_search() {
     let pred: Predicate = Box::new(|i| { let g:i64 = -5; let z:i64 = g.checked_add(i as i64).unwrap(); z });
     let res = binary_search(10, pred);
-    assert_eq!(res, Some(5));
-    assert_eq!(binary_search(10, predfactory(2)), Some(2));
+    assert_eq!(res, 5);
+    assert_eq!(binary_search(10, predfactory(2)), 2);
 }
 
+//  1   2   3  4  5 6 7 8 9 10
+//  -4 -3  -2 -1  0 1 2 3 4 5
 fn binary_search_inner(
-        predicate: Predicate, pi_beg: usize, pi_end: usize) -> Option<usize> {
+        predicate: Predicate, pi_beg: usize, pi_end: usize) -> usize {
     let mut i_beg = pi_beg;
     let mut i_end = pi_end;
-    let beg = predicate(i_beg);
-    while (i_end - i_beg >= 1) {
-        let beg = predicate(i_beg);
-        if (beg == 0) { 
-            return Some(i_beg);
-        }
-        let end = predicate(i_end);
-        if (end == 0) {
-            return Some(i_end);
-        }
+    let mut res = -1;
+    while (i_end > i_beg) {
         let mid = i_beg + (i_end-i_beg)/2;
         let pval = predicate(mid);
         print!("{:?} {:?} {:?} {:?} \n", i_beg, i_end, mid, pval);
-        if (pval == 0) {
-            return Some(mid);
+        if pval == 0 {
+            res = mid;
+            break;
         } else if (pval < 0) {
+            res = mid;
+            if i_beg == mid {
+                break; 
+            }
             i_beg = mid;
         } else {
             i_end = mid;
         }
-        if (i_end == i_beg || i_end == i_beg + 1) {
-            break; 
-        }
     }
-    let x: Option<usize> = None;
-    x
+    res
 }
 
 fn get_first_line_after<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: usize) -> String {
