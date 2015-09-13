@@ -20,8 +20,8 @@ fn matches(re: &Regex, line: &str) -> bool {
 type Pred = (Box<Fn(i64) -> i64>);
 type Predicate = Pred;
 
-fn binary_search(len: i64, predicate: Predicate) -> i64 {
-     binary_search_inner(predicate, 0, len)
+fn binary_search(beg: i64, end: i64, predicate: Predicate) -> i64 {
+     binary_search_inner(predicate, beg, end)
 }
 
 fn predfactory (item:i64) -> Predicate {
@@ -34,9 +34,12 @@ fn predfactory (item:i64) -> Predicate {
 #[test]
 fn test_binary_search() {
     let pred: Predicate = Box::new(|i| { let g:i64 = -5; let z:i64 = g.checked_add(i).unwrap(); z });
-    let res = binary_search(10, pred);
+    let res = binary_search(0, 10, pred);
     assert_eq!(res, 5);
-    assert_eq!(binary_search(10, predfactory(-2)), 2);
+    assert_eq!(binary_search(0, 9, predfactory(-2)), 2);
+    assert_eq!(binary_search(0, 9, predfactory(-9)), 9);
+    assert_eq!(binary_search(0, 9, predfactory(-10)), -11);
+    assert_eq!(binary_search(0, 9, predfactory(1)), -1);
 }
 
 //  1   2   3  4  5 6 7 8 9 10
@@ -45,14 +48,13 @@ fn binary_search_inner(
         predicate: Predicate, pi_beg: i64, pi_end: i64) -> i64 {
     let mut i_beg = pi_beg;
     let mut i_end = pi_end;
-    let mut res = -1;
     while (i_beg <= i_end) {
         let mid = i_beg + (i_end-i_beg)/2;
         let pval = predicate(mid);
         print!("{:?} {:?} {:?} {:?} \n", i_beg, i_end, mid, pval);
         if pval == 0 {
             return  mid;
-        } else if (pval < 0) {
+        } else if pval < 0 {
             i_beg = mid + 1;
         } else {
             i_end = mid - 1;
