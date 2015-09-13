@@ -17,53 +17,48 @@ fn matches(re: &Regex, line: &str) -> bool {
     re.is_match(line)
 }
 
-type Pred = (Box<Fn(usize) -> i64>);
+type Pred = (Box<Fn(i64) -> i64>);
 type Predicate = Pred;
 
-fn binary_search(len: usize, predicate: Predicate) -> usize {
+fn binary_search(len: i64, predicate: Predicate) -> i64 {
      binary_search_inner(predicate, 0, len)
 }
 
 fn predfactory (item:i64) -> Predicate {
     let pred: Pred =
-        Box::new(move |i:usize| { let z:i64 = item.checked_add(i as i64).unwrap(); z});
+        Box::new(move |i:i64| { let z:i64 = item.checked_add(i).unwrap(); z});
     pred
 }
 
 
 #[test]
 fn test_binary_search() {
-    let pred: Predicate = Box::new(|i| { let g:i64 = -5; let z:i64 = g.checked_add(i as i64).unwrap(); z });
+    let pred: Predicate = Box::new(|i| { let g:i64 = -5; let z:i64 = g.checked_add(i).unwrap(); z });
     let res = binary_search(10, pred);
     assert_eq!(res, 5);
-    assert_eq!(binary_search(10, predfactory(2)), 2);
+    assert_eq!(binary_search(10, predfactory(-2)), 2);
 }
 
 //  1   2   3  4  5 6 7 8 9 10
 //  -4 -3  -2 -1  0 1 2 3 4 5
 fn binary_search_inner(
-        predicate: Predicate, pi_beg: usize, pi_end: usize) -> usize {
+        predicate: Predicate, pi_beg: i64, pi_end: i64) -> i64 {
     let mut i_beg = pi_beg;
     let mut i_end = pi_end;
     let mut res = -1;
-    while (i_end > i_beg) {
+    while (i_beg <= i_end) {
         let mid = i_beg + (i_end-i_beg)/2;
         let pval = predicate(mid);
         print!("{:?} {:?} {:?} {:?} \n", i_beg, i_end, mid, pval);
         if pval == 0 {
-            res = mid;
-            break;
+            return  mid;
         } else if (pval < 0) {
-            res = mid;
-            if i_beg == mid {
-                break; 
-            }
-            i_beg = mid;
+            i_beg = mid + 1;
         } else {
-            i_end = mid;
+            i_end = mid - 1;
         }
-    }
-    res
+    };
+    -(i_beg + 1)
 }
 
 fn get_first_line_after<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: usize) -> String {
