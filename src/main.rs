@@ -11,7 +11,11 @@ use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    work(args[1].clone());
+    if args.len() < 3 {
+        print!("usage timecutrust date_start logfile_name");
+    } else {
+        work(args[1].clone(), args[2].clone());
+    }
 }
 
 fn matches(re: &Regex, line: &str) -> bool {
@@ -126,10 +130,14 @@ fn test_sample_regexp() {
     assert_eq!(true, matches(&re, "[2015-12-28 20:37:25] @30262 INFO: Processing by AgentController#tasks as"));
 }
 
-fn work(file: String) -> Result<(), io::Error> {
+fn work(b: String, file: String) -> Result<(), io::Error> {
     let mut f = try!(File::open(file));
     let mut file = BufReader::new(&f);
     let re = Regex::new(r"^\[\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\]").unwrap();
+
+    // find the first pos which is after the beg time
+
+
     for r_line in file.lines() {
         let line = r_line.unwrap();
         if matches(&re, &line) {
