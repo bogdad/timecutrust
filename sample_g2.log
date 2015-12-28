@@ -1,0 +1,10 @@
+[2015-12-28 20:37:25] @30262 INFO: Processing by AgentController#tasks as 
+[2015-12-28 20:37:25] @30262 INFO:   Parameters: {"lock"=>"true", "id"=>"trbo11e.trbo.google.net"}
+[2015-12-28 20:37:25] @11841 INFO:   Rendered text template (0.0ms)
+[2015-12-28 20:37:25] @11841 INFO: Completed 200 OK in 33.4ms (Views: 0.4ms | ActiveRecord: 19.3ms)
+[2015-12-28 20:37:25] @30262 INFO:   Rendered text template (0.0ms)
+[2015-12-28 20:37:25] @30262 INFO: Completed 200 OK in 9.2ms (Views: 0.4ms | ActiveRecord: 4.0ms)
+[2015-12-28 20:37:25] @29988 INFO: Started GET "/agent/tasks/browser-linux-sandlet-iva6-6.haze.google.net?lock=true&format=msgpack" for 2a02:6b8:b010:502a::27c at 2015-12-28 20:37:25 +0300
+[2015-12-28 20:37:25] @29988 INFO: Processing by AgentController#tasks as 
+[2015-12-28 20:37:25] @29988 INFO:   Parameters: {"lock"=>"true", "id"=>"browser-linux-sandlet-iva6-6.haze.google.net"}
+
