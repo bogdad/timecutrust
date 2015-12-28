@@ -7,10 +7,11 @@ use std::fs::File;
 use std::io::prelude::*;
 
 use regex::Regex;
-
+use std::env;
 
 fn main() {
-    readlines();
+    let args: Vec<String> = env::args().collect();
+    work(args[1].clone());
 }
 
 fn matches(re: &Regex, line: &str) -> bool {
@@ -117,6 +118,25 @@ fn find_new_line_pos_works() {
         let pos = find_new_line_pos(&mut test_data, 11);
         assert_eq!(Some("line".to_string()), pos);
     }
+}
+
+#[test]
+fn test_sample_regexp() {
+    let re = Regex::new(r"^\[\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\]").unwrap();
+    assert_eq!(true, matches(&re, "[2015-12-28 20:37:25] @30262 INFO: Processing by AgentController#tasks as"));
+}
+
+fn work(file: String) -> Result<(), io::Error> {
+    let mut f = try!(File::open(file));
+    let mut file = BufReader::new(&f);
+    let re = Regex::new(r"^\[\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\]").unwrap();
+    for r_line in file.lines() {
+        let line = r_line.unwrap();
+        if matches(&re, &line) {
+            print!("{}\n", line);
+        }
+    }
+    Ok(())
 }
 
 fn readlines() {
