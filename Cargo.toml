@@ -1,7 +1,7 @@
 [package]
 name = "timecutrust"
 version = "0.1.0"
-authors = ["Vladimir Shakhov <vshakhov@yandex-team.ru>"]
+authors = ["Vladimir Shakhov <bogdad@gmail.com>"]
 
 [dependencies]
 regex = "0.1.8"
