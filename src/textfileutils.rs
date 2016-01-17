@@ -2,7 +2,7 @@ use std::io;
 use std::io::{SeekFrom, BufReader, Cursor};
 use std::io::prelude::*;
 
-fn get_first_line_after<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: usize) -> String {
+pub fn get_first_line_after<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: usize) -> String {
     find_new_line_pos(reader, from).unwrap()
 }
 
