@@ -20,14 +20,24 @@ fn main() {
     if args.len() < 3 {
         print!("usage timecutrust date_start logfile_name");
     } else {
-        let f = try!(File::open(&args[1]));
-        let meta = try!(fs::metadata(file));
-        work(f, &args[2], meta.len());
+        match work_on_files(&args[0], &args[1]) {
+            Ok(_) => println!("done."),
+            Err(e) => {
+                println!("error parsing header: {}", e);
+            }
+        };
     }
 }
 
-fn work(b: &str, f: File, len: u64) -> Result<(), io::Error> {
+fn work_on_files(b: &str, f_name: &str) -> Result<(), io::Error> {
+    let f = try!(File::open(f_name));
+    let meta = try!(fs::metadata(f_name));
     let file = BufReader::new(&f);
+    work(b, &mut file, meta.len());
+    Ok(())
+}
+
+fn work<'a, R: Read + Seek>(b: &str, file: &mut BufReader<R>, len: u64) -> Result<(), io::Error> {
     let re = datetimes::init();
     let b_time = datetimes::parse(re, b);
     // find the first pos which is after the beg time
