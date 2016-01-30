@@ -1,3 +1,4 @@
+#![feature(core, unboxed_closures)]
 extern crate regex;
 extern crate chrono;
 
@@ -10,10 +11,52 @@ use regex::Regex;
 use std::env;
 use binary_search::Predicate;
 
+use chrono::UTC;
+use chrono::DateTime;
+
 mod binary_search;
 mod regexps;
 mod textfileutils;
 mod datetimes;
+
+
+
+struct FilePredicate<'fp, R: 'fp + Read + Seek> {
+    file: &'fp mut BufReader<R>,
+    re: regex::Regex,
+    b_time: DateTime<UTC>
+}
+
+impl<'fp, R: 'fp + Read + Seek> FilePredicate<'fp, R> {
+    fn new(file: &'fp mut BufReader<R>, re: Regex, b_time: DateTime<UTC>) -> FilePredicate<'fp, R> {
+        FilePredicate{ file: file, re: re, b_time: b_time }
+    }
+
+    fn call_inner(&self, pos: u64) -> i64 {
+        let line = textfileutils::get_first_line_after(self.file, pos);
+        let line_time = datetimes::parse(self.re, &line);
+        line_time.timestamp() - self.b_time.timestamp()
+    }
+}
+
+impl<'fp, R: Read + Seek> FnOnce<(u64)> for FilePredicate<'fp, R> {
+    type Output = i64;
+    extern "rust-call" fn call_once(self, pos: u64) -> i64 {
+        self.call_inner(pos)
+    }
+}
+
+impl<'fp, R: Read + Seek> FnMut<(u64)> for FilePredicate<'fp, R> {
+    extern "rust-call" fn call_mut(&mut self, pos: u64) -> i64 {
+        self.call_inner(pos)
+    }
+}
+
+impl<'fp, R: Read + Seek> Fn<(u64)> for FilePredicate<'fp, R> {
+    extern "rust-call" fn call(&self, pos: u64) -> i64 {
+        self.call_inner(pos)
+    }
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -37,18 +80,13 @@ fn work_on_files(b: &str, f_name: &str) -> Result<(), io::Error> {
     Ok(())
 }
 
-fn work<'a, R: Read + Seek>(b: &str, file: &mut BufReader<R>, len: u64) -> Result<(), io::Error> {
+fn work<'a, R: Read + Seek>(b: &'a str, file: &'a mut BufReader<R>, len: u64) -> Result<(), io::Error> {
     let re = datetimes::init();
     let b_time = datetimes::parse(re, b);
-    // find the first pos which is after the beg time
-    let pred: Predicate = Box::new(|pos: u64| {
-        let line = textfileutils::get_first_line_after(&mut file, pos);
-        let line_time = datetimes::parse(re, &line);
-        line_time.timestamp() - b_time.timestamp()
-    });
-    let start_pos: u64 = binary_search::binary_search(0, len, pred);
-    file.seek(SeekFrom::Start(start_pos)).unwrap();
+    let pred: FilePredicate<'a, R> = FilePredicate::new(file, re, b_time);
 
+    let start_pos: u64 = binary_search::binary_search(0, len, &pred);
+    file.seek(SeekFrom::Start(start_pos)).unwrap();
     for r_line in file.lines() {
         let line = r_line.unwrap();
         print!("{}\n", line);

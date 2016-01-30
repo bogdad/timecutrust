@@ -1,16 +1,16 @@
 use std::cmp::max;
 
-type Pred = (Box<Fn(u64) -> i64>);
+type Pred = (Fn(u64) -> i64);
 pub type Predicate = Pred;
 
-pub fn binary_search(beg: u64, end: u64, predicate: Predicate) -> u64 {
+pub fn binary_search<'a>(beg: u64, end: u64, predicate: &'a Predicate) -> u64 {
     print!("new case");
     binary_search_inner(predicate, beg, end)
 }
 
 //  1   2   3  4  5 6 7 8 9 10
 //  -4 -3  -2 -1  0 1 2 3 4 5
-fn binary_search_inner(predicate: Predicate, pi_beg: u64, pi_end: u64) -> u64 {
+fn binary_search_inner<'a>(predicate: &'a Predicate, pi_beg: u64, pi_end: u64) -> u64 {
     let mut i_beg = pi_beg;
     let mut i_end = pi_end;
     while i_beg <= i_end {
@@ -36,10 +36,8 @@ fn binary_search_inner(predicate: Predicate, pi_beg: u64, pi_end: u64) -> u64 {
     i_beg
 }
 
-fn predfactory (item:i64) -> Predicate {
-    let pred: Pred =
-    Box::new(move |i:u64| { let z:i64 = item.checked_add(i as i64).unwrap(); z});
-    pred
+fn predfactory<'a>(item:i64) -> &'a Predicate {
+    & move |i:u64| { let z:i64 = item.checked_add(i as i64).unwrap(); z};
 }
 
 
