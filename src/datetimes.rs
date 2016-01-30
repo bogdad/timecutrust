@@ -6,7 +6,7 @@ pub fn init() -> Regex {
     re
 }
 
-pub fn parse(re: Regex, line: &str) -> DateTime<UTC> {
+pub fn parse(re: &Regex, line: &str) -> DateTime<UTC> {
     let caps = re.captures(line).unwrap();
     let year = caps.at(1).unwrap().parse::<i32>().unwrap();
     let mon = caps.at(2).unwrap().parse::<u32>().unwrap();

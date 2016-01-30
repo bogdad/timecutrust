@@ -1,9 +1,9 @@
-#![feature(core, unboxed_closures)]
+#![feature(unboxed_closures, fn_traits)]
 extern crate regex;
 extern crate chrono;
 
 use std::io;
-use std::io::{SeekFrom, BufReader, Cursor};
+use std::io::{BufReader, Lines, Cursor};
 use std::fs::File;
 use std::fs;
 use std::io::prelude::*;
@@ -21,40 +21,46 @@ mod datetimes;
 
 
 
-struct FilePredicate<'fp, R: 'fp + Read + Seek> {
-    file: &'fp mut BufReader<R>,
+struct FilePredicate<R: Read + Seek> {
+    file: BufReader<R>,
     re: regex::Regex,
     b_time: DateTime<UTC>
 }
 
-impl<'fp, R: 'fp + Read + Seek> FilePredicate<'fp, R> {
-    fn new(file: &'fp mut BufReader<R>, re: Regex, b_time: DateTime<UTC>) -> FilePredicate<'fp, R> {
+impl<R: Read + Seek> FilePredicate<R> {
+    fn new(file: BufReader<R>, re: Regex, b_time: DateTime<UTC>) -> FilePredicate<R> {
         FilePredicate{ file: file, re: re, b_time: b_time }
     }
 
-    fn call_inner(&self, pos: u64) -> i64 {
-        let line = textfileutils::get_first_line_after(self.file, pos);
-        let line_time = datetimes::parse(self.re, &line);
+    fn lines(self) -> Lines<BufReader<R>> {
+        self.file.lines()
+    }
+
+    fn call_inner_mut(&mut self, args: (u64,)) -> i64 {
+        let (pos,) = args;
+        let line = textfileutils::get_first_line_after(& mut self.file, pos);
+        let line_time = datetimes::parse(&self.re, &line);
+        line_time.timestamp() - self.b_time.timestamp()
+    }
+
+    fn call_inner(mut self, args: (u64,)) -> i64 {
+        let (pos,) = args;
+        let line = textfileutils::get_first_line_after(& mut self.file, pos);
+        let line_time = datetimes::parse(&self.re, &line);
         line_time.timestamp() - self.b_time.timestamp()
     }
 }
 
-impl<'fp, R: Read + Seek> FnOnce<(u64)> for FilePredicate<'fp, R> {
+impl<R: Read + Seek> FnOnce<(u64,)> for FilePredicate<R> {
     type Output = i64;
-    extern "rust-call" fn call_once(self, pos: u64) -> i64 {
+    extern "rust-call" fn call_once(self, pos: (u64,)) -> i64 {
         self.call_inner(pos)
     }
 }
 
-impl<'fp, R: Read + Seek> FnMut<(u64)> for FilePredicate<'fp, R> {
-    extern "rust-call" fn call_mut(&mut self, pos: u64) -> i64 {
-        self.call_inner(pos)
-    }
-}
-
-impl<'fp, R: Read + Seek> Fn<(u64)> for FilePredicate<'fp, R> {
-    extern "rust-call" fn call(&self, pos: u64) -> i64 {
-        self.call_inner(pos)
+impl<R: Read + Seek> FnMut<(u64,)> for FilePredicate<R> {
+    extern "rust-call" fn call_mut(&mut self, pos: (u64,)) -> i64 {
+        self.call_inner_mut(pos)
     }
 }
 
@@ -72,25 +78,30 @@ fn main() {
     }
 }
 
-fn work_on_files(b: &str, f_name: &str) -> Result<(), io::Error> {
+fn work_on_files<'a>(b: &'a str, f_name: &'a str) -> Result<(), io::Error> {
     let f = try!(File::open(f_name));
     let meta = try!(fs::metadata(f_name));
     let file = BufReader::new(&f);
-    work(b, &mut file, meta.len());
+    work_pred(b, file, meta.len());
     Ok(())
 }
 
-fn work<'a, R: Read + Seek>(b: &'a str, file: &'a mut BufReader<R>, len: u64) -> Result<(), io::Error> {
+fn work_pred<'a, R: Read + Seek>(b: &'a str, file: BufReader<R>, len: u64) -> Result<(), io::Error> {
     let re = datetimes::init();
-    let b_time = datetimes::parse(re, b);
-    let pred: FilePredicate<'a, R> = FilePredicate::new(file, re, b_time);
+    let b_time = datetimes::parse(&re, b);
+    let pred: FilePredicate<R> = FilePredicate::new(file, re, b_time);
+    work(pred, len)
+}
 
-    let start_pos: u64 = binary_search::binary_search(0, len, &pred);
-    file.seek(SeekFrom::Start(start_pos)).unwrap();
-    for r_line in file.lines() {
-        let line = r_line.unwrap();
-        print!("{}\n", line);
-    }
+fn work<'a, R: 'a + Read + Seek>(pred: FilePredicate<R>, len: u64) -> Result<(), io::Error> {
+    binary_search::binary_search(0, len, & mut pred);
+    unimplemented!();
+    //
+    //for r_line in pred.lines() {
+    //    let line = r_line.unwrap();
+    //    print!("{}\n", line);
+    //}
+    //
     Ok(())
 }
 
