@@ -20,23 +20,23 @@ fn main() {
     if args.len() < 3 {
         print!("usage timecutrust date_start logfile_name");
     } else {
-        work(&args[1], &args[2]);
+        let f = try!(File::open(&args[1]));
+        let meta = try!(fs::metadata(file));
+        work(f, &args[2], meta.len());
     }
 }
 
-fn work(b: &str, file: &str) -> Result<(), io::Error> {
-    let mut f = try!(File::open(file));
-    let meta = try!(fs::metadata(file));
-    let mut file = BufReader::new(&f);
+fn work(b: &str, f: File, len: u64) -> Result<(), io::Error> {
+    let file = BufReader::new(&f);
     let re = datetimes::init();
     let b_time = datetimes::parse(re, b);
     // find the first pos which is after the beg time
     let pred: Predicate = Box::new(|pos: u64| {
-        let line = textfileutils::get_first_line_after(file, pos);
-        let line_time = datetimes::parse(re, line);
+        let line = textfileutils::get_first_line_after(&mut file, pos);
+        let line_time = datetimes::parse(re, &line);
         line_time.timestamp() - b_time.timestamp()
     });
-    let start_pos = binary_search::binary_search(0, meta.len(), pred);
+    let start_pos: u64 = binary_search::binary_search(0, len, pred);
     file.seek(SeekFrom::Start(start_pos)).unwrap();
 
     for r_line in file.lines() {

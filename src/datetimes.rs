@@ -15,4 +15,5 @@ pub fn parse(re: Regex, line: &str) -> DateTime<UTC> {
     let mm = caps.at(5).unwrap().parse::<u32>().unwrap();
     let ss = caps.at(6).unwrap().parse::<u32>().unwrap();
     let dt = UTC.ymd(year, mon, day).and_hms(hh, mm, ss);
+    dt
 }

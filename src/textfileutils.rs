@@ -2,8 +2,8 @@ use std::io;
 use std::io::{SeekFrom, BufReader, Cursor};
 use std::io::prelude::*;
 
-pub fn get_first_line_after<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: usize) -> String {
-    find_new_line_pos(reader, from).unwrap()
+pub fn get_first_line_after<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: u64) -> String {
+    find_new_line_pos(reader, from as usize).unwrap()
 }
 
 const SIZE: usize = 256;
