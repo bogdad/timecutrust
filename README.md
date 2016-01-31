@@ -6,6 +6,7 @@ quickly find a time position in a log file (like nginx access)
 using binary search, and then output all the lines older than it
 
 # usage
+```
 ./target/debug/timecutrust
 
 Usage: timecutrust [options] 'beg-time' file
@@ -18,3 +19,4 @@ Options:
     -h, --help          print this help menu
 examples:
 timecutrust '[2015-12-28 20:37:25]' ./sample_g2.log
+```
