@@ -6,7 +6,7 @@ pub fn get_first_line_after<'a, R: Read + Seek>(reader: &mut BufReader<R>, from:
 }
 
 const SIZE: usize = 1024;
-// it is able to find strings up-to 256 elements wide
+// it is able to find strings up-to 1024 elements wide
 fn find_new_line_pos<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: usize) -> Option<String> {
     let before = match from.checked_sub(SIZE) {
         None => 0,
