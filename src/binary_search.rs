@@ -1,11 +1,8 @@
-use std::cmp::max;
-
-type Pred = (FnMut(u64) -> i64);
-pub type Predicate = Pred;
-
 //  1   2   3  4  5 6 7 8 9 10
 //  -4 -3  -2 -1  0 1 2 3 4 5
-pub fn binary_search(pi_beg: u64, pi_end: u64, predicate: & mut Predicate) -> u64 {
+pub fn binary_search<'a, P>(pi_beg: u64, pi_end: u64, predicate: &'a mut P) -> u64
+    where P : FnMut(u64) -> i64
+    {
     let mut i_beg = pi_beg;
     let mut i_end = pi_end;
     while i_beg <= i_end {
@@ -31,19 +28,45 @@ pub fn binary_search(pi_beg: u64, pi_end: u64, predicate: & mut Predicate) -> u6
     i_beg
 }
 
-fn predfactory(item:i64) -> Box<Predicate> {
-    Box::new(move |i:u64| { let z:i64 = item.checked_add(i as i64).unwrap(); z})
+
+struct EqPred {
+    item : i64
+}
+
+impl EqPred {
+    fn new(item:i64) -> EqPred {
+        EqPred{item: item}
+    }
+    fn call_inner(&self, pos:(u64,)) -> i64 {
+        let (i,) = pos;
+        let z:i64 = self.item.checked_add(i as i64).unwrap();
+        z
+    }
+}
+
+impl FnOnce<(u64,)> for EqPred {
+    type Output = i64;
+    extern "rust-call" fn call_once(self, pos: (u64,)) -> i64 {
+        self.call_inner(pos)
+    }
+}
+
+impl FnMut<(u64,)> for EqPred {
+    extern "rust-call" fn call_mut(& mut self, pos: (u64,)) -> i64 {
+        self.call_inner(pos)
+    }
 }
 
 
 #[test]
 fn test_binary_search() {
-    let pred: Predicate = Box::new(|i:u64| { let g:i64 = -5; let z:i64 = g.checked_add(i as i64).unwrap(); z });
-    let res = binary_search(0, 10, pred);
-    assert_eq!(res, 5);
-    assert_eq!(binary_search(0, 9, predfactory(-2)), 2);
-    assert_eq!(binary_search(0, 9, predfactory(-9)), 9);
-    assert_eq!(binary_search(0, 9, predfactory(-10)), 9);
-    assert_eq!(binary_search(0, 9, predfactory(1)), 0);
+    let mut eq2 = EqPred::new(-2);
+    let mut eq9 = EqPred::new(-9);
+    let mut eq10 = EqPred::new(-10);
+    let mut eq_1 = EqPred::new(1);
+    assert_eq!(binary_search(0, 9, &mut eq2), 2);
+    assert_eq!(binary_search(0, 9, &mut eq9), 9);
+    assert_eq!(binary_search(0, 9, &mut eq10), 9);
+    assert_eq!(binary_search(0, 9, &mut eq_1), 0);
 }
 

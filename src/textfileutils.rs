@@ -1,4 +1,3 @@
-use std::io;
 use std::io::{SeekFrom, BufReader, Cursor};
 use std::io::prelude::*;
 
