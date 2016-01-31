@@ -68,7 +68,7 @@ impl<'a, R: 'a + Read + Seek> FnMut<(u64,)> for FilePredicate<'a, R> {
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
-        print!("usage timecutrust date_start logfile_name");
+        println!("usage timecutrust date_start logfile_name");
     } else {
         match work_on_files(&args[0], &args[1]) {
             Ok(_) => println!("done."),
