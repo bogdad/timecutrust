@@ -1,4 +1,4 @@
-[2015-12-28 20:37:25] @30262 INFO: Processing by AgentController#tasks as 
+[2015-12-28 20:30:25] @30262 INFO: Processing by AgentController#tasks as
 [2015-12-28 20:37:25] @30262 INFO:   Parameters: {"lock"=>"true", "id"=>"trbo11e.trbo.google.net"}
 [2015-12-28 20:37:25] @11841 INFO:   Rendered text template (0.0ms)
 [2015-12-28 20:37:25] @11841 INFO: Completed 200 OK in 33.4ms (Views: 0.4ms | ActiveRecord: 19.3ms)

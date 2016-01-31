@@ -1,11 +1,11 @@
 use std::io::{SeekFrom, BufReader, Cursor};
 use std::io::prelude::*;
 
-pub fn get_first_line_after<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: u64) -> String {
-    find_new_line_pos(reader, from as usize).unwrap()
+pub fn get_first_line_after<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: u64) -> Option<String> {
+    find_new_line_pos(reader, from as usize)
 }
 
-const SIZE: usize = 256;
+const SIZE: usize = 1024;
 // it is able to find strings up-to 256 elements wide
 fn find_new_line_pos<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: usize) -> Option<String> {
     let before = match from.checked_sub(SIZE) {
@@ -15,8 +15,11 @@ fn find_new_line_pos<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: usize)
     reader.seek(SeekFrom::Start(before as u64)).unwrap();
     let mut buf: [u8;2*SIZE] = [0; 2*SIZE];
     let len = reader.read(&mut buf).unwrap();
+    if len == 0 {
+        return None;
+    }
     let bufs = &buf[0..len];
-    print!("{:?}", String::from_utf8_lossy(bufs));
+    //print!("{:?}", String::from_utf8_lossy(bufs));
     let last_before = bufs.iter().enumerate().rposition(|(i, x)| *x==b'\n' && (i + before) < from);
     let last_after = bufs.iter().enumerate().position(|(i, x)| *x==b'\n' && (i + before) >= from);
     let str_before = match last_before {

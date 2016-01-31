@@ -1,14 +1,17 @@
 //  1   2   3  4  5 6 7 8 9 10
 //  -4 -3  -2 -1  0 1 2 3 4 5
 pub fn binary_search<'a, P>(pi_beg: u64, pi_end: u64, predicate: &'a mut P) -> u64
-    where P : FnMut(u64) -> i64
-    {
+    where P : FnMut(u64) -> i64 {
     let mut i_beg = pi_beg;
     let mut i_end = pi_end;
+    let pval = predicate(i_beg);
+    if pval == 0 {
+        return i_beg;
+    }
     while i_beg <= i_end {
         let mid = i_beg + (i_end-i_beg)/2;
         let pval = predicate(mid);
-        print!("{:?} {:?} {:?} {:?} \n", i_beg, i_end, mid, pval);
+        println!("{:?} {:?} {:?} {:?} \n", i_beg, i_end, mid, pval);
         if pval == 0 {
             return  mid;
         } else if pval < 0 {
