@@ -86,7 +86,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     let mut opts = Options::new();
-    opts.optopt("r", "--regexp", "regular exprerrion", "REGULAR_EXPRESSION");
+    opts.optopt("r", "regexp", "regular exprerrion", "REGULAR_EXPRESSION");
     opts.optflag("h", "help", "print this help menu");
 
     let matches = match opts.parse(&args[1..]) {
