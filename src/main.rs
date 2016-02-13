@@ -102,7 +102,7 @@ fn main() {
     if matches.free.len() < 2 {
         print_usage(opts);
     } else {
-        let re = matches.opt_str("r").unwrap_or(r"^\[(\d{4})-(\d{2})-(\d{2})\s(\d{2}):(\d{2}):(\d{2})\]".to_string());
+        let re = matches.opt_str("r").unwrap_or(r"^\[(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\s(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})\]".to_string());
         match work_on_files(&matches.free[0], &matches.free[1], &re) {
             Ok(_) => println!("done."),
             Err(e) => {
