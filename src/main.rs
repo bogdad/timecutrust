@@ -107,7 +107,7 @@ fn main() {
             .unwrap_or(r"^\[(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\s(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})\]"
                        .to_string());
         if matches.opt_present("n") {
-            re = r"^\[(?P<day>\d{2})/(?P<monthName>\p{L}*)/(?P<year>\d{4}):(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})".to_string();
+            re = r"^\[(?P<day>\d{2})/(?P<monthname>\p{L}*)/(?P<year>\d{4}):(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})".to_string();
         }
         match work_on_files(&matches.free[0], &matches.free[1], &re) {
             Ok(_) => println!("done."),
