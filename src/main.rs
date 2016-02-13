@@ -86,8 +86,9 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     let mut opts = Options::new();
-    opts.optopt("r", "regexp", "regular exprerrion", "REGULAR_EXPRESSION");
+    opts.optopt("r", "regexp", "regular expresrion", "REGULAR_EXPRESSION");
     opts.optflag("h", "help", "print this help menu");
+    opts.optflag("n", "nginx", "run on nginx access.log with pattern like '[28/Dec/2015:06:26:08'");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
@@ -99,10 +100,15 @@ fn main() {
         return;
     }
 
-    if matches.free.len() < 2 {
+    if matches.free.len() < 1 {
         print_usage(opts);
     } else {
-        let re = matches.opt_str("r").unwrap_or(r"^\[(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\s(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})\]".to_string());
+        let mut re = matches.opt_str("r")
+            .unwrap_or(r"^\[(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\s(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})\]"
+                       .to_string());
+        if matches.opt_present("n") {
+            re = r"^\[(?P<day>\d{2})/(?P<monthName>\p{L}*)/(?P<year>\d{4}):(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})".to_string();
+        }
         match work_on_files(&matches.free[0], &matches.free[1], &re) {
             Ok(_) => println!("done."),
             Err(e) => {
@@ -116,6 +122,7 @@ fn work_on_files<'a>(b: &'a str, f_name: &'a str, re_str: &'a str) -> Result<(),
     let f = try!(File::open(f_name));
     let meta = try!(fs::metadata(f_name));
     let file = BufReader::new(&f);
+    println!("date regexp {}", re_str);
     work_pred(b, f_name, re_str, file, meta.len())
 }
 
