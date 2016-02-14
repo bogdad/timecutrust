@@ -26,30 +26,30 @@ pub fn parse(re: &Regex, line: &str) -> Option<DateTime<UTC>> {
     };
     let year = match caps.name("year") {
         None => return None,
-        Some(y) => y.parse::<i32>().unwrap()
+        Some(y) => y.parse::<i32>().expect("could not parse year")
     };
     let mon = match caps.name("monthname")
         .map(|mn| monthIndex(mn))
-        .or(caps.name("month").map(|t| t.parse::<u32>().unwrap()))
+        .or(caps.name("month").map(|t| t.parse::<u32>().expect("could not parse month")))
          {
         None => return None,
         Some(m) => m
     };
     let day = match caps.name("day") {
         None => return None,
-        Some(d) => d.parse::<u32>().unwrap()
+        Some(d) => d.parse::<u32>().expect("could not parse day")
     };
     let hh = match caps.name("hour") {
         None => return None,
-        Some(hh) => hh.parse::<u32>().unwrap()
+        Some(hh) => hh.parse::<u32>().expect("could not parse hour")
     };
     let mm = match caps.name("minute") {
         None => return None,
-        Some(mm) => mm.parse::<u32>().unwrap()
+        Some(mm) => mm.parse::<u32>().expect("could not parse minute")
     };
     let ss = match caps.name("second") {
         None => return None,
-        Some(ss) => ss.parse::<u32>().unwrap()
+        Some(ss) => ss.parse::<u32>().expect("could not parse second")
     };
     let dt = UTC.ymd(year, mon, day).and_hms(hh, mm, ss);
     Some(dt)

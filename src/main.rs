@@ -135,7 +135,9 @@ fn work_on_files<'a>(b: &'a str, f_name: &'a str, re_str: &'a str) -> Result<(),
 
 fn work_pred<'a, R: 'a + Read + Seek>(b: &'a str, f_name: &'a str, re_s: &'a str, file: BufReader<R>, len: u64) -> Result<(), io::Error> {
     let re = datetimes::init(re_s);
-    let b_time = datetimes::parse(&re, b).unwrap() - Duration::milliseconds(1);
+    let b_time =
+        datetimes::parse(&re, b).expect(&format!("could not parse begging time {}", b))
+            - Duration::milliseconds(1);
     let pred: FilePredicate<R> = FilePredicate::new(file, len, re, b_time);
     let start_pos = try!(get_start_pos(pred, len));
     work_end(f_name, start_pos)
