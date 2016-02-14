@@ -11,7 +11,7 @@ pub fn init(r: &str) -> Regex {
 
 pub fn monthIndex(line: &str) -> u32 {
     let mut parsed: Parsed = Parsed::new();
-    println!("{}", line);
+    //println!("{}", line);
     let items = vec![Item::Fixed(Fixed::ShortMonthName)];
     let items_iter = items.into_iter();
     format::parse(& mut parsed, line, items_iter);
@@ -24,7 +24,6 @@ pub fn parse(re: &Regex, line: &str) -> Option<DateTime<UTC>> {
         None => return None,
         Some(c) => c
     };
-    println!("line {}", line);
     let year = match caps.name("year") {
         None => return None,
         Some(y) => y.parse::<i32>().unwrap()

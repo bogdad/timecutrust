@@ -11,7 +11,7 @@ pub fn binary_search<'a, P>(pi_beg: u64, pi_end: u64, predicate: &'a mut P) -> u
     while i_beg <= i_end {
         let mid = i_beg + (i_end-i_beg)/2;
         let pval = predicate(mid);
-        println!("{:?} {:?} {:?} {:?} \n", i_beg, i_end, mid, pval);
+        //println!("{:?} {:?} {:?} {:?} \n", i_beg, i_end, mid, pval);
         if pval == 0 {
             return  mid;
         } else if pval < 0 {

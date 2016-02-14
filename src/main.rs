@@ -26,22 +26,23 @@ mod datetimes;
 
 struct FilePredicate<'a, R: 'a + Read + Seek> {
     file: BufReader<R>,
+    len: u64,
     re: regex::Regex,
     b_time: DateTime<UTC>,
     phantom: PhantomData<&'a BufReader<R>>
 }
 
 impl<'a, R: 'a + Read + Seek> FilePredicate<'a, R> {
-    fn new(file: BufReader<R>, re: Regex, b_time: DateTime<UTC>) -> FilePredicate<'a, R> {
-        FilePredicate{ file: file, re: re, b_time: b_time, phantom: PhantomData }
+    fn new(file: BufReader<R>, len: u64, re: Regex, b_time: DateTime<UTC>) -> FilePredicate<'a, R> {
+        FilePredicate{ file: file, len: len, re: re, b_time: b_time, phantom: PhantomData }
     }
 
     fn call_inner_mut(&mut self, args: (u64,)) -> i64 {
         let (pos,) = args;
-
+        let mut cur_pos = pos;
         let mut line_timestamp: i64 = -1;
         loop {
-            let line_o = textfileutils::get_first_line_after(& mut self.file, pos);
+            let line_o = textfileutils::get_first_line_after(& mut self.file, cur_pos);
             if line_o.is_none() {
                 break
             }
@@ -49,6 +50,12 @@ impl<'a, R: 'a + Read + Seek> FilePredicate<'a, R> {
             let line_time_o = datetimes::parse(&self.re, &line);
             if line_time_o.is_some() {
                 line_timestamp = line_time_o.unwrap().timestamp();
+                break;
+            } else {
+                //println!("skipping {}", line);
+            }
+            cur_pos += line.len() as u64;
+            if cur_pos >= self.len {
                 break;
             }
         }
@@ -129,7 +136,7 @@ fn work_on_files<'a>(b: &'a str, f_name: &'a str, re_str: &'a str) -> Result<(),
 fn work_pred<'a, R: 'a + Read + Seek>(b: &'a str, f_name: &'a str, re_s: &'a str, file: BufReader<R>, len: u64) -> Result<(), io::Error> {
     let re = datetimes::init(re_s);
     let b_time = datetimes::parse(&re, b).unwrap() - Duration::milliseconds(1);
-    let pred: FilePredicate<R> = FilePredicate::new(file, re, b_time);
+    let pred: FilePredicate<R> = FilePredicate::new(file, len, re, b_time);
     let start_pos = try!(get_start_pos(pred, len));
     work_end(f_name, start_pos)
 }

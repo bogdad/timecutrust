@@ -5,14 +5,14 @@ pub fn get_first_line_after<'a, R: Read + Seek>(reader: &mut BufReader<R>, from:
     find_new_line_pos(reader, from as usize)
 }
 
-const SIZE: usize = 1024;
+const SIZE: usize = 512;
 // it is able to find strings up-to 1024 elements wide
 fn find_new_line_pos<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: usize) -> Option<String> {
     let before = match from.checked_sub(SIZE) {
         None => 0,
         Some(x) => x
     };
-    reader.seek(SeekFrom::Start(before as u64)).unwrap();
+    reader.seek(SeekFrom::Start(before as u64)).ok().expect(&format!("seek failed {}", before));
     let mut buf: [u8;2*SIZE] = [0; 2*SIZE];
     let len = reader.read(&mut buf).unwrap();
     if len == 0 {
@@ -22,6 +22,7 @@ fn find_new_line_pos<'a, R: Read + Seek>(reader: &mut BufReader<R>, from: usize)
     //print!("{:?}", String::from_utf8_lossy(bufs));
     let last_before = bufs.iter().enumerate().rposition(|(i, x)| *x==b'\n' && (i + before) < from);
     let last_after = bufs.iter().enumerate().position(|(i, x)| *x==b'\n' && (i + before) >= from);
+    //println!("from {} before {} lb {:?} la {:?}", from, before, last_before, last_after);
     let str_before = match last_before {
         None => String::from_utf8_lossy(&buf[0..from-before]).into_owned(),
         Some(pos) => String::from_utf8_lossy(&buf[pos+1..from-before]).into_owned()
