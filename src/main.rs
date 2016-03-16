@@ -117,9 +117,13 @@ fn main() {
             re = r"^\[(?P<day>\d{2})/(?P<monthname>\p{L}*)/(?P<year>\d{4}):(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})".to_string();
         }
         match work_on_files(&matches.free[0], &matches.free[1], &re) {
-            Ok(_) => println!("done."),
+            Ok(_) => return,
             Err(e) => {
-                println!("error parsing header: {}", e);
+                if e.kind() == ErrorKind::BrokenPipe {
+                    return;
+                } else {
+                    println!("error parsing header: {}", e);
+                }
             }
         };
     }
@@ -140,15 +144,7 @@ fn work_pred<'a, R: 'a + Read + Seek>(b: &'a str, f_name: &'a str, re_s: &'a str
             - Duration::milliseconds(1);
     let pred: FilePredicate<R> = FilePredicate::new(file, len, re, b_time);
     let start_pos = try!(get_start_pos(pred, len));
-    match work_end(f_name, start_pos) {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            if e.kind() == ErrorKind::BrokenPipe {
-                return Ok(());
-            }
-            return Err(e);
-        }
-    }
+    work_end(f_name, start_pos)
 }
 
 fn get_start_pos<'a, R: 'a + Read + Seek>(mut pred: FilePredicate<'a, R>, len: u64) -> Result<(u64), io::Error> {
@@ -157,16 +153,12 @@ fn get_start_pos<'a, R: 'a + Read + Seek>(mut pred: FilePredicate<'a, R>, len: u
 }
 
 fn work_end(f_name: &str, start_pos: u64) -> Result<(), io::Error> {
-    let stdout = io::stdout();
-    let mut handle = stdout.lock();
     let f = try!(File::open(f_name));
     let mut file = BufReader::new(&f);
     file.seek(SeekFrom::Start(start_pos)).unwrap();
     for r_line in file.lines() {
         let line = r_line.unwrap();
-        try!(handle.write(line.as_bytes()));
-        try!(handle.write(b"\n"));
-	    try!(handle.flush());
+        println!("{}", line);
     }
     Ok(())
 }
