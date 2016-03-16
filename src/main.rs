@@ -160,7 +160,7 @@ fn work_end(f_name: &str, start_pos: u64) -> Result<(), io::Error> {
     file.seek(SeekFrom::Start(start_pos)).unwrap();
     for r_line in file.lines() {
         let line = r_line.unwrap();
-        try!(out.write_fmt(format_args!("{}", line)));
+        try!(out.write_fmt(format_args!("{}\n", line)));
     }
     Ok(())
 }
