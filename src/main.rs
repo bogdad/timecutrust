@@ -155,6 +155,7 @@ fn work_end(f_name: &str, start_pos: u64) -> Result<(), io::Error> {
     for r_line in file.lines() {
         let line = r_line.unwrap();
         println!("{}", line);
+        io::stdout().flush();
     }
     Ok(())
 }
