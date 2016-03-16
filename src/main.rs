@@ -150,15 +150,12 @@ fn get_start_pos<'a, R: 'a + Read + Seek>(mut pred: FilePredicate<'a, R>, len: u
 
 fn work_end(f_name: &str, start_pos: u64) -> Result<(), io::Error> {
     let stdout = io::stdout();
-    let mut handle = stdout.lock();
     let f = try!(File::open(f_name));
     let mut file = BufReader::new(&f);
     file.seek(SeekFrom::Start(start_pos)).unwrap();
     for r_line in file.lines() {
         let line = r_line.unwrap();
-        handle.write(line.as_bytes());
-        handle.write(b"\n");
-	    handle.flush();
+        println!("{}", line);
     }
     Ok(())
 }
