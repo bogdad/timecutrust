@@ -4,7 +4,7 @@ extern crate chrono;
 extern crate getopts;
 
 use std::marker::PhantomData;
-use std::io::{self, BufReader, Lines, Write};
+use std::io::{self, BufReader};
 use std::fs::File;
 use std::fs;
 use std::io::prelude::{Seek, Read, BufRead};
@@ -149,7 +149,6 @@ fn get_start_pos<'a, R: 'a + Read + Seek>(mut pred: FilePredicate<'a, R>, len: u
 }
 
 fn work_end(f_name: &str, start_pos: u64) -> Result<(), io::Error> {
-    let stdout = io::stdout();
     let f = try!(File::open(f_name));
     let mut file = BufReader::new(&f);
     file.seek(SeekFrom::Start(start_pos)).unwrap();
