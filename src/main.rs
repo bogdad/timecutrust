@@ -158,7 +158,7 @@ fn work_end(f_name: &str, start_pos: u64) -> Result<(), io::Error> {
         let line = r_line.unwrap();
         handle.write(line.as_bytes());
         handle.write(b"\n");
-	handle.flush();
+	    handle.flush();
     }
     Ok(())
 }
