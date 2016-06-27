@@ -1,0 +1,10 @@
+Source: timecutrust
+Priority: optional
+Maintainer: Vladimir Shakhov <bogdad@gmail.com>
+Build-Depends: rustc, cargo, debhelper (>= 5)
+Standards-Version: 3.8.0.0
+
+Package: timecutrust
+Architecture: amd64
+Depends: glibc
+Description: timecutrust - tail a file from a specific timestamp
