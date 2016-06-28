@@ -1,0 +1,5 @@
+timecutrust (0.1.0) unstable; urgency=low
+
+  * initial debianization
+
+ -- Vladimir Shakhov <vshakhov@yandex-team.ru>  Tue, 28 Jun 2016 15:24:30 +0300

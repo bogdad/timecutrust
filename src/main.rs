@@ -1,4 +1,4 @@
-#![feature(unboxed_closures, fn_traits)]
+#![feature(unboxed_closures, fn_traits, core)]
 extern crate regex;
 extern crate chrono;
 extern crate getopts;

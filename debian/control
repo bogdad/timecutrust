@@ -1,7 +1,7 @@
 Source: timecutrust
 Priority: optional
 Maintainer: Vladimir Shakhov <bogdad@gmail.com>
-Build-Depends: rustc, cargo, debhelper (>= 5)
+Build-Depends: rust-nightly, cargo-nightly, debhelper (>= 5)
 Standards-Version: 3.8.0.0
 
 Package: timecutrust
