@@ -4,6 +4,6 @@ version = "0.1.0"
 authors = ["Vladimir Shakhov <bogdad@gmail.com>"]
 
 [dependencies]
-regex = "0.1.8"
+regex = "0.1"
 chrono = "0.2"
 getopts = "0.2"
